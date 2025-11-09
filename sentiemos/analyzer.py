@@ -190,6 +190,25 @@ def analyse_audio(
                     "timestamp": (None, None),
                 }
             ]
+    asr = pipeline(
+        "automatic-speech-recognition",
+        model=asr_model,
+        chunk_length_s=chunk_length_s,
+    )
+    sentiment_analyzer = pipeline("sentiment-analysis", model=sentiment_model)
+    emotion_classifier = pipeline("audio-classification", model=emotion_model, top_k=1)
+
+    transcript = asr(audio_path.as_posix(), return_timestamps=True)
+    chunks: Sequence[dict]
+    if isinstance(transcript, dict) and "chunks" in transcript:
+        chunks = transcript["chunks"]
+    else:
+        chunks = [
+            {
+                "text": transcript["text"] if isinstance(transcript, dict) else str(transcript),
+                "timestamp": (None, None),
+            }
+        ]
 
     analyses: List[SegmentAnalysis] = []
     for chunk in chunks:
