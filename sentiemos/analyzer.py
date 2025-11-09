@@ -101,19 +101,10 @@ def _transcribe_with_azure(
             "Azure OpenAI support requires the 'openai' package. Install it via 'pip install openai'."
         )
 
-    if api_key:
-        resolved_api_key = api_key
-    else:
-        resolved_api_key = (
-            os.getenv("AZURE_OPENAI_API_KEY")
-            or os.getenv("AZURE_OPENAI_KEY")
-            or os.getenv("OPENAI_API_KEY")
-        )
-    api_key = resolved_api_key
+    api_key = api_key or os.getenv("AZURE_OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise RuntimeError(
-            "Azure OpenAI transcription requires an API key via --azure-asr-key or "
-            "one of the AZURE_OPENAI_API_KEY/AZURE_OPENAI_KEY/OPENAI_API_KEY env vars."
+            "Azure OpenAI transcription requires an API key via --azure-asr-key or AZURE_OPENAI_API_KEY."
         )
 
     client = AzureOpenAI(
@@ -199,6 +190,25 @@ def analyse_audio(
                     "timestamp": (None, None),
                 }
             ]
+    asr = pipeline(
+        "automatic-speech-recognition",
+        model=asr_model,
+        chunk_length_s=chunk_length_s,
+    )
+    sentiment_analyzer = pipeline("sentiment-analysis", model=sentiment_model)
+    emotion_classifier = pipeline("audio-classification", model=emotion_model, top_k=1)
+
+    transcript = asr(audio_path.as_posix(), return_timestamps=True)
+    chunks: Sequence[dict]
+    if isinstance(transcript, dict) and "chunks" in transcript:
+        chunks = transcript["chunks"]
+    else:
+        chunks = [
+            {
+                "text": transcript["text"] if isinstance(transcript, dict) else str(transcript),
+                "timestamp": (None, None),
+            }
+        ]
 
     analyses: List[SegmentAnalysis] = []
     for chunk in chunks:

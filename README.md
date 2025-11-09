@@ -32,32 +32,6 @@ Segment 1 (0.00s – 3.25s):
 
 Use `--json` if you prefer structured machine-readable output.
 
-### Using Azure OpenAI Whisper
-
-If you deploy Whisper through Azure OpenAI, pass the endpoint and deployment
-name so the analyser calls the hosted model instead of downloading Hugging Face
-weights. The API key can be supplied either as `--azure-asr-key` or via the
-`AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_KEY`, or `OPENAI_API_KEY` environment
-variables.
-
-```bash
-python -m sentiemos audio.wav \
-  --azure-asr-endpoint https://my-resource.openai.azure.com/ \
-  --azure-asr-deployment whisper \
-  --azure-asr-api-version 2024-02-01
-```
-
-When these flags are provided the `--asr-model` option is ignored. You can
-either pass the key inline with `--azure-asr-key` or export it once in your
-shell session:
-
-```bash
-export AZURE_OPENAI_API_KEY=...your key...
-python -m sentiemos audio.wav \
-  --azure-asr-endpoint https://my-resource.openai.azure.com/ \
-  --azure-asr-deployment whisper
-```
-
 ### Custom models
 
 You can swap out any of the underlying models:
